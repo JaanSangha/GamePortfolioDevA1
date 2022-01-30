@@ -14,16 +14,18 @@ public class GameManager : MonoBehaviour
     private int gridSize = 32;
     [SerializeField]
     private int numOfMaxResources = 8;
-    int[] numbers = new int[6];
-    int randomNum, pickedRow, pickedColumn;
-    // Start is called before the first frame update
+    private int[] acceptableNumbers = new int[6];
+    private int randomNum, pickedRow, pickedColumn;
+    public bool isHidden = false;
+
     void Start()
     {
-        numbers = new int[] { 2, 7, 12, 17, 22, 27 };
+        acceptableNumbers = new int[] { 2, 7, 12, 17, 22, 27 };
 
         Vector3 tempPos = transform.position;
 
         gridArray = new GridSlot[gridSize, gridSize];
+
         for(int row=0;row<gridSize;row++)
         {
             for(int column=0; column < gridSize; column++)
@@ -35,25 +37,27 @@ public class GameManager : MonoBehaviour
             tempPos.y = transform.position.y;
             tempPos.x += 50;
         }
+
         SetResources();
+        isHidden = true;
     }
 
-    // Update is called once per frame
-    void Update()
+    public void OnHideUnhideClick()
     {
-        
+        isHidden = !isHidden;
     }
     void SetResources()
     {
         while (numOfMaxResources > 0)
         {
             randomNum = Random.Range(0, 6);
-            pickedRow = numbers[randomNum];
+            pickedRow = acceptableNumbers[randomNum];
             randomNum = Random.Range(0, 6);
-            pickedColumn = numbers[randomNum];
+            pickedColumn = acceptableNumbers[randomNum];
             if(!gridArray[pickedRow, pickedColumn].isFilled)
             {
                 gridArray[pickedRow, pickedColumn].isFilled = true;
+
                 // set max resource
                 gridArray[pickedRow, pickedColumn].isMax = true;
 
@@ -75,9 +79,7 @@ public class GameManager : MonoBehaviour
                     }
                 }
                 numOfMaxResources--;
-                Debug.Log("set row: " + pickedRow + " column: " + pickedColumn);
             }
         }
-
     }
 }
