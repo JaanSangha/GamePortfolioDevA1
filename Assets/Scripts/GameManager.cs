@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -17,6 +18,11 @@ public class GameManager : MonoBehaviour
     private int[] acceptableNumbers = new int[6];
     private int randomNum, pickedRow, pickedColumn;
     public bool isHidden = false;
+    public bool isExtracting = false;
+    private int scanAttempts = 6;
+    private int extractAttempts = 3;
+    private int score = 0;
+    public TMP_Text scoreText;
 
     void Start()
     {
@@ -32,6 +38,8 @@ public class GameManager : MonoBehaviour
             {
                 gridArray[row, column] = Instantiate(gridSlot,tempPos, transform.rotation);
                 gridArray[row, column].gameObject.transform.SetParent(canvas.transform);
+                gridArray[row, column].row = row;
+                gridArray[row, column].column = column;
                 tempPos.y -= 50;
             }
             tempPos.y = transform.position.y;
@@ -40,12 +48,30 @@ public class GameManager : MonoBehaviour
 
         SetResources();
         isHidden = true;
+
+        scoreText.text = "Resources Gathered: " + score;
     }
 
     public void OnHideUnhideClick()
     {
         isHidden = !isHidden;
+        if(isHidden)
+        {
+            for (int row = 0; row < gridSize; row++)
+            {
+                for (int column = 0; column < gridSize; column++)
+                {
+                    gridArray[row, column].SetHiddenColor();
+                }
+            }
+        }
     }
+
+    public void OnScanExtractClick()
+    {
+        isExtracting = !isExtracting;
+    }
+
     void SetResources()
     {
         while (numOfMaxResources > 0)
@@ -81,5 +107,94 @@ public class GameManager : MonoBehaviour
                 numOfMaxResources--;
             }
         }
+    }
+
+    public void ScanReveal(int rowRef, int columnRef)
+    {
+        if (scanAttempts > 0)
+        {
+            for (int row = rowRef - 1; row < rowRef + 2; row++)
+            {
+                for (int column = columnRef - 1; column < columnRef + 2; column++)
+                {
+                    if (row < 0 || row > 31 || column < 0 || column > 31)
+                    {
+
+                    }
+                    else
+                    {
+                        if (gridArray[row, column].isMax)
+                        {
+                            gridArray[row, column].SetMaxColor();
+                        }
+                        else if (gridArray[row, column].isHalf)
+                        {
+                            gridArray[row, column].SetHalfColor();
+                        }
+                        else if (gridArray[row, column].isQuarter)
+                        {
+                            gridArray[row, column].SetQuarterColor();
+                        }
+                    }
+
+                }
+            }
+            scanAttempts--;
+        }
+    }
+
+    public void ExtractSlot(int rowRef, int columnRef)
+    {
+       
+        if (gridArray[rowRef, columnRef].isMax)
+        {
+            gridArray[rowRef, columnRef].SetHitColor();
+            gridArray[rowRef, columnRef].isMax = false;
+            gridArray[rowRef, columnRef].isHalf = false;
+            gridArray[rowRef, columnRef].isQuarter = false;
+            score += 2000;
+            Debug.Log("You Found 2000");
+        }
+        else if (gridArray[rowRef, columnRef].isHalf)
+        {
+            gridArray[rowRef, columnRef].SetHitColor();
+            score += 1000;
+            Debug.Log("You Found 1000");
+        }
+        else if (gridArray[rowRef, columnRef].isQuarter)
+        {
+            gridArray[rowRef, columnRef].SetHitColor();
+            score += 500;
+            Debug.Log("You Found 500");
+        }
+        else
+        {
+            gridArray[rowRef, columnRef].SetBlankColor();
+        }
+
+        for (int row = rowRef - 2; row < rowRef + 3; row++)
+        {
+            for (int column = columnRef - 2; column < columnRef + 3; column++)
+            {
+                if (gridArray[row, column].isMax)
+                {
+                    gridArray[row, column].isMax = false;
+                    gridArray[row, column].isHalf = true;
+                    gridArray[row, column].SetHalfColor();
+                }
+                else if (gridArray[row, column].isHalf)
+                {
+                    gridArray[row, column].isHalf = false;
+                    gridArray[row, column].isQuarter = true;
+                    gridArray[row, column].SetQuarterColor();
+                }
+                else if (gridArray[row, column].isQuarter)
+                {
+                    gridArray[row, column].isQuarter = false;
+                    gridArray[row, column].SetBlankColor();
+                }
+            }
+        }
+        scoreText.text = "Resources Gathered: " + score;
     }
 }
