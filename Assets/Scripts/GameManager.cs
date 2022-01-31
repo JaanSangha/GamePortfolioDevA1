@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -23,6 +25,11 @@ public class GameManager : MonoBehaviour
     private int extractAttempts = 3;
     private int score = 0;
     public TMP_Text scoreText;
+    public TMP_Text scansLeft;
+    public TMP_Text extractsLeft;
+    public TMP_Text messageBox;
+    public GameObject restartButton;
+
 
     void Start()
     {
@@ -30,6 +37,7 @@ public class GameManager : MonoBehaviour
 
         Vector3 tempPos = transform.position;
 
+        //create tile grid
         gridArray = new GridSlot[gridSize, gridSize];
 
         for(int row=0;row<gridSize;row++)
@@ -48,20 +56,26 @@ public class GameManager : MonoBehaviour
 
         SetResources();
         isHidden = true;
-
+        //set UI texts
+        messageBox.text = "You Are in Scan Mode!";
         scoreText.text = "Resources Gathered: " + score;
+        extractsLeft.text = "Extracts Left: " + extractAttempts;
+        scansLeft.text = "Scans Left: " + scanAttempts;
     }
 
     public void OnHideUnhideClick()
     {
-        isHidden = !isHidden;
-        if(isHidden)
+        if (extractAttempts > 0)
         {
-            for (int row = 0; row < gridSize; row++)
+            isHidden = !isHidden;
+            if (isHidden)
             {
-                for (int column = 0; column < gridSize; column++)
+                for (int row = 0; row < gridSize; row++)
                 {
-                    gridArray[row, column].SetHiddenColor();
+                    for (int column = 0; column < gridSize; column++)
+                    {
+                        gridArray[row, column].SetHiddenColor();
+                    }
                 }
             }
         }
@@ -69,7 +83,24 @@ public class GameManager : MonoBehaviour
 
     public void OnScanExtractClick()
     {
-        isExtracting = !isExtracting;
+        if (extractAttempts > 0)
+        {
+            if (isExtracting)
+            {
+                messageBox.text = "You Are in Scan Mode!";
+            }
+            else
+            {
+                messageBox.text = "You Are in Extract Mode!";
+            }
+
+            isExtracting = !isExtracting;
+        }
+    }
+
+    public void OnRestartClicked()
+    {
+        SceneManager.LoadScene("Minigame");
     }
 
     void SetResources()
@@ -113,6 +144,7 @@ public class GameManager : MonoBehaviour
     {
         if (scanAttempts > 0)
         {
+            //find surrounding tiles to reveal
             for (int row = rowRef - 1; row < rowRef + 2; row++)
             {
                 for (int column = columnRef - 1; column < columnRef + 2; column++)
@@ -135,66 +167,91 @@ public class GameManager : MonoBehaviour
                         {
                             gridArray[row, column].SetQuarterColor();
                         }
+                        else
+                        {
+                            gridArray[rowRef, columnRef].SetBlankColor();
+                        }
                     }
 
                 }
             }
             scanAttempts--;
+            scansLeft.text = "Scans Left: " + scanAttempts;
+            messageBox.text = "Scan Succesful";
         }
     }
 
     public void ExtractSlot(int rowRef, int columnRef)
     {
-       
-        if (gridArray[rowRef, columnRef].isMax)
+        if (extractAttempts > 0)
         {
-            gridArray[rowRef, columnRef].SetHitColor();
-            gridArray[rowRef, columnRef].isMax = false;
-            gridArray[rowRef, columnRef].isHalf = false;
-            gridArray[rowRef, columnRef].isQuarter = false;
-            score += 2000;
-            Debug.Log("You Found 2000");
-        }
-        else if (gridArray[rowRef, columnRef].isHalf)
-        {
-            gridArray[rowRef, columnRef].SetHitColor();
-            score += 1000;
-            Debug.Log("You Found 1000");
-        }
-        else if (gridArray[rowRef, columnRef].isQuarter)
-        {
-            gridArray[rowRef, columnRef].SetHitColor();
-            score += 500;
-            Debug.Log("You Found 500");
-        }
-        else
-        {
-            gridArray[rowRef, columnRef].SetBlankColor();
-        }
-
-        for (int row = rowRef - 2; row < rowRef + 3; row++)
-        {
-            for (int column = columnRef - 2; column < columnRef + 3; column++)
+            if (gridArray[rowRef, columnRef].isMax)
             {
-                if (gridArray[row, column].isMax)
+                gridArray[rowRef, columnRef].SetHitColor();
+                gridArray[rowRef, columnRef].isMax = false;
+                gridArray[rowRef, columnRef].isHalf = false;
+                gridArray[rowRef, columnRef].isQuarter = false;
+                score += 2000;
+                messageBox.text = "Hit Max Resource!";
+
+            }
+            else if (gridArray[rowRef, columnRef].isHalf)
+            {
+                gridArray[rowRef, columnRef].SetHitColor();
+                gridArray[rowRef, columnRef].isMax = false;
+                gridArray[rowRef, columnRef].isHalf = false;
+                gridArray[rowRef, columnRef].isQuarter = false;
+                score += 1000;
+                messageBox.text = "Hit Half Resource!";
+            }
+            else if (gridArray[rowRef, columnRef].isQuarter)
+            {
+                gridArray[rowRef, columnRef].SetHitColor();
+                gridArray[rowRef, columnRef].isMax = false;
+                gridArray[rowRef, columnRef].isHalf = false;
+                gridArray[rowRef, columnRef].isQuarter = false;
+                score += 500;
+                messageBox.text = "Hit Quarter Resource!";
+            }
+            else
+            {
+                gridArray[rowRef, columnRef].SetBlankColor();
+                messageBox.text = "No Resource Found!";
+            }
+
+            for (int row = rowRef - 2; row < rowRef + 3; row++)
+            {
+                for (int column = columnRef - 2; column < columnRef + 3; column++)
                 {
-                    gridArray[row, column].isMax = false;
-                    gridArray[row, column].isHalf = true;
-                    gridArray[row, column].SetHalfColor();
-                }
-                else if (gridArray[row, column].isHalf)
-                {
-                    gridArray[row, column].isHalf = false;
-                    gridArray[row, column].isQuarter = true;
-                    gridArray[row, column].SetQuarterColor();
-                }
-                else if (gridArray[row, column].isQuarter)
-                {
-                    gridArray[row, column].isQuarter = false;
-                    gridArray[row, column].SetBlankColor();
+                    if (gridArray[row, column].isMax)
+                    {
+                        gridArray[row, column].isMax = false;
+                        gridArray[row, column].isHalf = true;
+                        gridArray[row, column].SetHalfColor();
+                    }
+                    else if (gridArray[row, column].isHalf)
+                    {
+                        gridArray[row, column].isHalf = false;
+                        gridArray[row, column].isQuarter = true;
+                        gridArray[row, column].SetQuarterColor();
+                    }
+                    else if (gridArray[row, column].isQuarter)
+                    {
+                        gridArray[row, column].isQuarter = false;
+                        gridArray[row, column].SetBlankColor();
+                    }
                 }
             }
+            extractAttempts--;
+            scoreText.text = "Resources Gathered: " + score;
+            extractsLeft.text = "Extracts Left: " + extractAttempts;
+            //end game
+            if(extractAttempts <1)
+            {
+                scoreText.text = " ";
+                messageBox.text = "In Total You Gathered " + score+ " Resources";
+                restartButton.SetActive(true);
+            }
         }
-        scoreText.text = "Resources Gathered: " + score;
     }
 }

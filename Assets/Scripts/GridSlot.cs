@@ -31,8 +31,6 @@ public class GridSlot : MonoBehaviour
                 SetQuarterColor();
             }
         }
-        //else
-        //    GetComponent<Image>().color = new Color(0.467f,0.710f,0.660f,1f);
     }
 
     public void OnClicked()
