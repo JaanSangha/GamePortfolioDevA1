@@ -5,14 +5,14 @@ using UnityEngine.UI;
 
 public class GridSlot : MonoBehaviour
 {
-    public bool isMax, isHalf, isQuarter, isFilled = false;
+    public bool isMax, isHalf, isQuarter, isFilled, keepColor = false;
     private GameManager gameManager;
 
     public int row, column;
     private void Awake()
     {
         gameManager = FindObjectOfType<GameManager>();
-        GetComponent<Image>().color = new Color(0.467f, 0.710f, 0.660f, 1f);
+        SetHiddenColor();
     }
     private void Update()
     {
@@ -72,6 +72,7 @@ public class GridSlot : MonoBehaviour
 
     public void SetHiddenColor()
     {
+        if(!keepColor)
         GetComponent<Image>().color = new Color(0.467f, 0.710f, 0.660f, 1f);
     }
 }

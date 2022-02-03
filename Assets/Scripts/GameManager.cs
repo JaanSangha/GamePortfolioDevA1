@@ -16,11 +16,11 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private int gridSize = 32;
     [SerializeField]
-    private int numOfMaxResources = 8;
+    private int numOfMaxResources = 10;
     private int[] acceptableNumbers = new int[6];
     private int randomNum, pickedRow, pickedColumn;
     public bool isHidden = false;
-    public bool isExtracting = false;
+    public bool isExtracting = true;
     private int scanAttempts = 6;
     private int extractAttempts = 3;
     private int score = 0;
@@ -57,7 +57,7 @@ public class GameManager : MonoBehaviour
         SetResources();
         isHidden = true;
         //set UI texts
-        messageBox.text = "You Are in Scan Mode!";
+        messageBox.text = "You Are in Extract Mode!";
         scoreText.text = "Resources Gathered: " + score;
         extractsLeft.text = "Extracts Left: " + extractAttempts;
         scansLeft.text = "Scans Left: " + scanAttempts;
@@ -74,6 +74,7 @@ public class GameManager : MonoBehaviour
                 {
                     for (int column = 0; column < gridSize; column++)
                     {
+                        if(!gridArray[row, column].keepColor)
                         gridArray[row, column].SetHiddenColor();
                     }
                 }
@@ -150,11 +151,10 @@ public class GameManager : MonoBehaviour
                 for (int column = columnRef - 1; column < columnRef + 2; column++)
                 {
                     if (row < 0 || row > 31 || column < 0 || column > 31)
-                    {
-
-                    }
+                    { }
                     else
                     {
+                        gridArray[row, column].keepColor = true;
                         if (gridArray[row, column].isMax)
                         {
                             gridArray[row, column].SetMaxColor();
@@ -167,12 +167,7 @@ public class GameManager : MonoBehaviour
                         {
                             gridArray[row, column].SetQuarterColor();
                         }
-                        else
-                        {
-                            gridArray[rowRef, columnRef].SetBlankColor();
-                        }
                     }
-
                 }
             }
             scanAttempts--;
@@ -185,6 +180,7 @@ public class GameManager : MonoBehaviour
     {
         if (extractAttempts > 0)
         {
+            gridArray[rowRef, columnRef].keepColor = true;
             if (gridArray[rowRef, columnRef].isMax)
             {
                 gridArray[rowRef, columnRef].SetHitColor();
@@ -215,7 +211,6 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                gridArray[rowRef, columnRef].SetBlankColor();
                 messageBox.text = "No Resource Found!";
             }
 
@@ -240,6 +235,7 @@ public class GameManager : MonoBehaviour
                         gridArray[row, column].isQuarter = false;
                         gridArray[row, column].SetBlankColor();
                     }
+                    gridArray[row, column].SetHiddenColor();
                 }
             }
             extractAttempts--;
